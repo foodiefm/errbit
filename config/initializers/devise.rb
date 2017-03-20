@@ -255,7 +255,8 @@ Devise.setup do |config|
   if Errbit::Config.google_authentication || Rails.env.test?
     config.omniauth :google_oauth2,
       Errbit::Config.google_client_id,
-      Errbit::Config.google_secret
+      Errbit::Config.google_secret,
+      {:hd => Errbit::Config.google_allow_domains || '*'}
   end
 
   # ==> Warden configuration

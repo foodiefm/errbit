@@ -82,6 +82,8 @@ In order of precedence Errbit uses:
 <dt>GOOGLE_AUTHENTICATION
 <dd>Allow google sign-in via OAuth
 <dd>defaults to true
+<dt>GOOGLE_ALLOW_DOMAINS
+<dd>If defined, check authenticated email is from GOOGLE_ALLOW_DOMAINS [domain1.com,domain2.com]. Creates new users automatically, if from authorized domain.
 <dt>GOOGLE_CLIENT_ID
 <dd>Client id of your google application
 <dt>GOOGLE_SECRET

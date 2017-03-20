@@ -169,6 +169,8 @@ When you start your application, you should see the option to **Sign in with
 Google** on the Login page. You will also be able to link your Google profile
 to your user account on your **Edit profile** page.
 
+Optionally, set GOOGLE_ALLOW_DOMAINS=[example.org,example.com] to check if authenticated user's email is from allowed list of domains. Creates new users automatically.
+
 ### Configuring LDAP authentication:
 
 * Set ERRBIT_USER_HAS_USERNAME=true

@@ -6,7 +6,7 @@ Capybara.javascript_driver = :poltergeist
 
 OmniAuth.config.test_mode = true
 
-def mock_auth(user = "test_user", token = "abcdef")
+def mock_auth(user = "test_user", token = "abcdef", email = 'errbit@errbit.example.com')
   OmniAuth.config.mock_auth[:github] = Hashie::Mash.new(
     'provider'    => 'github',
     'uid'         => '1763',
@@ -24,7 +24,8 @@ def mock_auth(user = "test_user", token = "abcdef")
     provider: 'google',
     uid: user,
     info: {
-      email: 'errbit@errbit.example.com'
+      email: email,
+      name: user
     }
   )
 end

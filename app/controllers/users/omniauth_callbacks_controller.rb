@@ -44,7 +44,13 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     google_email = env['omniauth.auth'].info.email
     google_user = User.where(google_uid: google_uid).first
     google_site_title = Errbit::Config.google_site_title
-    # If user is already signed in, link google details to their account
+
+    # if GOOGLE_AUTH_DOMAIN is set, check if email is from that domain
+    if Errbit::Config.google_allow_domains && !google_allowed_domain?(google_email)
+      flash[:error] = "email '#{google_email}' is not from allowed domains."
+      redirect_to new_user_session_path and return
+    end
+
     if current_user
       # ... unless a user is already registered with same google login
       if google_user && google_user != current_user
@@ -60,15 +66,46 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       flash[:success] = I18n.t 'devise.omniauth_callbacks.success', kind: google_site_title
       sign_in_and_redirect google_user, event: :authentication
     else
-      flash[:error] = "There are no authorized users with #{google_site_title} login '#{google_email}'. Please ask an administrator to register your user account."
-      redirect_to new_user_session_path
+      if Errbit::Config.google_allow_domains
+        # we've checked already that domain is verified, try to create new
+        user = bind_or_create_google_domain_user(google_email,
+                                             env['omniauth.auth'].info.name,
+                                             google_uid)
+        flash[:success] = I18n.t 'devise.omniauth_callbacks.success', kind: google_site_title
+        sign_in_and_redirect user, event: :authentication
+      else
+        flash[:error] = "There are no authorized users with #{google_site_title} login '#{google_email}', Please ask an administrator to register you user account."
+        redirect_to new_user_session_path
+      end
     end
   end
 
-  private def update_user_with_github_attributes(user, login, token)
+
+  private
+
+  def update_user_with_github_attributes(user, login, token)
     user.update_attributes(
       github_login:       login,
       github_oauth_token: token
     )
   end
+
+  def google_allowed_domain?(address)
+    domains = Errbit::Config.google_allow_domains || []
+    m = Mail::Address.new(address)
+    domains.each do |domain|
+      return true if m.domain.casecmp(domain).zero?
+    end
+    return false
+  end
+
+  def bind_or_create_google_domain_user(email, name, uid)
+    existing_email_user = User.where(email: email).first
+    if existing_email_user
+      existing_email_user.update_attributes(google_uid: uid)
+      return existing_email_user
+    end
+    return User.create(email: email, name: name, google_uid: uid)
+  end
+
 end
